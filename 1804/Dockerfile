@@ -28,9 +28,9 @@ RUN add-apt-repository -y ppa:ondrej/php && \
   apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 4F4EA0AAE5267A6C && \
   apt-get update && \
   apt-get -y upgrade && \
-  apt-get -y install postfix python3-setuptools wget git apache2 php-xdebug libapache2-mod-php mysql-server php-mysql pwgen php-apcu php-gd php-xml php-mbstring php-gettext zip unzip php-zip curl php-curl && \
+  apt-get -y install postfix python3-setuptools wget git apache2 php-xdebug libapache2-mod-php mysql-server php-mysql pwgen php-apcu php-gd php-xml php-mbstring php-gettext zip unzip php-zip php7.0 libapache2-mod-php7.0 php7.4-phalcon php-igbinary memcached curl php-curl && \
   apt-get -y autoremove && \
-  echo "ServerName localhost" >> /etc/apache2/apache2.conf
+  echo "ServerName shopcada.dev.local" >> /etc/apache2/apache2.conf
 
 # Install supervisor 4
 RUN curl -L https://pypi.io/packages/source/s/supervisor/supervisor-${SUPERVISOR_VERSION}.tar.gz | tar xvz && \
@@ -38,20 +38,20 @@ RUN curl -L https://pypi.io/packages/source/s/supervisor/supervisor-${SUPERVISOR
   python3 setup.py install
 
 # Add image configuration and scripts
-ADD supporting_files/start-apache2.sh /start-apache2.sh
-ADD supporting_files/start-mysqld.sh /start-mysqld.sh
-ADD supporting_files/run.sh /run.sh
+ADD docker-lamp/supporting_files/start-apache2.sh /start-apache2.sh
+ADD docker-lamp/supporting_files/start-mysqld.sh /start-mysqld.sh
+ADD docker-lamp/supporting_files/run.sh /run.sh
 RUN chmod 755 /*.sh
-ADD supporting_files/supervisord-apache2.conf /etc/supervisor/conf.d/supervisord-apache2.conf
-ADD supporting_files/supervisord-mysqld.conf /etc/supervisor/conf.d/supervisord-mysqld.conf
-ADD supporting_files/supervisord.conf /etc/supervisor/supervisord.conf
-ADD supporting_files/mysqld_innodb.cnf /etc/mysql/conf.d/mysqld_innodb.cnf
+ADD docker-lamp/supporting_files/supervisord-apache2.conf /etc/supervisor/conf.d/supervisord-apache2.conf
+ADD docker-lamp/supporting_files/supervisord-mysqld.conf /etc/supervisor/conf.d/supervisord-mysqld.conf
+ADD docker-lamp/supporting_files/supervisord.conf /etc/supervisor/supervisord.conf
+ADD docker-lamp/supporting_files/mysqld_innodb.cnf /etc/mysql/conf.d/mysqld_innodb.cnf
 
 # Remove pre-installed database
 RUN rm -rf /var/lib/mysql
 
 # Add MySQL utils
-ADD supporting_files/create_mysql_users.sh /create_mysql_users.sh
+ADD docker-lamp/supporting_files/create_mysql_users.sh /create_mysql_users.sh
 
 # Add phpmyadmin
 RUN wget -O /tmp/phpmyadmin.tar.gz https://files.phpmyadmin.net/phpMyAdmin/${PHPMYADMIN_VERSION}/phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages.tar.gz
@@ -67,8 +67,9 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" &&
 
 ENV MYSQL_PASS:-$(pwgen -s 12 1)
 # config to enable .htaccess
-ADD supporting_files/apache_default /etc/apache2/sites-available/000-default.conf
+ADD docker-lamp/supporting_files/apache_default /etc/apache2/sites-available/000-default.conf
 RUN a2enmod rewrite
+RUN a2enmod headers
 
 # Configure /app folder with sample app
 RUN mkdir -p /app && rm -fr /var/www/html && ln -s /app /var/www/html
@@ -78,6 +79,11 @@ ADD app/ /app
 ENV PHP_UPLOAD_MAX_FILESIZE 10M
 ENV PHP_POST_MAX_SIZE 10M
 ENV PHP_VERSION 7.4
+
+# Give children processes 5 minutes to timeout
+ENV KILL_PROCESS_TIMEOUT=300
+# Give all other processes (such as those which have been forked) 5 minutes to timeout
+ENV KILL_ALL_PROCESSES_TIMEOUT=300
 
 # Add volumes for the app and MySql
 VOLUME  ["/var/lib/mysql", "/app" ]
