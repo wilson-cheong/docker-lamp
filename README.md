@@ -70,12 +70,6 @@ This is the quickest way
 # Launch a 18.04 based image
 docker run -p "80:80" -v ${PWD}/app:/app mattrayner/lamp:latest-1804
 
-# Launch a 16.04 based image
-docker run -p "80:80" -v ${PWD}/app:/app mattrayner/lamp:latest-1604
-
-# Launch a 14.04 based image
-docker run -p "80:80" -v ${PWD}/app:/app mattrayner/lamp:latest-1404
-```
 
 ### With a Dockerfile
 ```docker
@@ -190,17 +184,13 @@ cd docker-lamp
 
 # Build the images
 docker build -t=mattrayner/lamp:latest -f ./1804/Dockerfile .
-docker build -t=mattrayner/lamp:latest-1604 -f ./1604/Dockerfile .
-docker build -t=mattrayner/lamp:latest-1804 -f ./1804/Dockerfile .
 
 # Run the image as a container
-docker run -d -p "3000:80" mattrayner/lamp:latest-1804
+docker run -i -t -p "80:80" -p "4306:3306" -v ${PWD}/shopcada:/app -v ${PWD}/mysql:/var/lib/mysql -v $(pwd)/logs:/etc/apache2/logs mattrayner/lamp:latest
 
-# Sleep to allow the container to boot
-sleep 5
+# Browse website
+http://shopcada.dev.local
 
-# Curl out the contents of our new container
-curl "http://$(docker-machine ip):3000/"
 ```
 
 ### Testing
