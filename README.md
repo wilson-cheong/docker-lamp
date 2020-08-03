@@ -174,19 +174,28 @@ ldi 8080
 ldi 3000 3306
 ```
 
-
 ## Developing the image
-### Building and running
+### Building and running shopcada
 ```bash
 # Clone the project from Github
+mkdir dev
+cd dev
+
+mkdir logs
+mkdir mysql
+
 git clone https://github.com/mattrayner/docker-lamp.git
-cd docker-lamp
+git clone application
 
 # Build the images
-docker build -t=mattrayner/lamp:latest -f ./1804/Dockerfile .
+docker build -t=mattrayner/lamp:latest -f ./docker-lamp/1804/Dockerfile .
 
 # Run the image as a container
 docker run -i -t -p "80:80" -p "4306:3306" -v ${PWD}/shopcada:/app -v ${PWD}/mysql:/var/lib/mysql -v $(pwd)/logs:/etc/apache2/logs mattrayner/lamp:latest
+
+OR
+
+docker run --memory 4096m --cpus 2 -i -t -p "80:80" -p "4306:3306" -v ${pwd}/shopcada:/app -v ${pwd}/mysql:/var/lib/mysql -v ${pwd}/logs:/etc/apache2/logs mattrayner/lamp:latest
 
 # Browse website
 http://shopcada.dev.local
