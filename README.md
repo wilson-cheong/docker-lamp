@@ -202,6 +202,14 @@ http://shopcada.dev.local
 
 ```
 
+### Windows Machine Setup
+
+Convert supporting_files using LF with notepad++ 
+https://superuser.com/questions/479756/eol-in-notepad-and-notepad
+
+https://medium.com/@lewwybogus/how-to-stop-wsl2-from-hogging-all-your-ram-with-docker-d7846b9c5b37
+
+
 ### Testing
 We use `docker-compose` to setup, build and run our testing environment. It allows us to offload a large amount of the testing overhead to Docker, and to ensure that we always test our image in a consistent way that's not affected by the host machine.
 
